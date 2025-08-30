@@ -2,43 +2,7 @@ import { defineStore } from 'pinia'
 
 export const useCourseStore = defineStore('course', {
   state: () => ({
-    courses: [
-      {
-        id: 1,
-        name: '数学基础',
-        description: '数学基础课程，涵盖代数、几何等内容',
-        status: 'published', // published, draft, archived
-        createdAt: '2023-01-15'
-      },
-      {
-        id: 2,
-        name: '英语口语',
-        description: '提高英语口语表达能力',
-        status: 'draft',
-        createdAt: '2023-02-20'
-      },
-      {
-        id: 3,
-        name: '计算机科学导论',
-        description: '计算机科学基础知识介绍',
-        status: 'published',
-        createdAt: '2023-03-10'
-      },
-      {
-        id: 4,
-        name: '物理原理',
-        description: '物理学基本原理和实验',
-        status: 'published',
-        createdAt: '2023-04-05'
-      },
-      {
-        id: 5,
-        name: '化学实验',
-        description: '化学实验基础和安全操作',
-        status: 'published',
-        createdAt: '2023-05-12'
-      }
-    ]
+    courses: []
   }),
   
   getters: {
@@ -48,40 +12,108 @@ export const useCourseStore = defineStore('course', {
   },
   
   actions: {
-    addCourse(course) {
-      const newCourse = {
-        id: this.courses.length + 1,
-        ...course,
-        createdAt: new Date().toISOString().split('T')[0]
-      }
-      this.courses.push(newCourse)
-    },
-    
-    updateCourse(id, updatedCourse) {
-      const index = this.courses.findIndex(course => course.id === id)
-      if (index !== -1) {
-        this.courses[index] = { ...this.courses[index], ...updatedCourse }
+    async fetchCourses() {
+      try {
+        // fecth from remote server
+        const response = await fetch('/api/courses')
+        if (!response.ok) throw new Error('Failed to fetch courses')
+        const data = await response.json()
+        this.courses = data
+      } catch (error) {
+        console.error('Error fetching courses:', error)
+        // 如果获取失败，使用空数组
+        this.courses = []
       }
     },
     
-    toggleCourseStatus(id) {
-      const index = this.courses.findIndex(course => course.id === id)
-      if (index !== -1) {
-        const status = this.courses[index].status
-        if (status === 'published') {
-          this.courses[index].status = 'archived'
-        } else if (status === 'archived') {
-          this.courses[index].status = 'published'
-        } else {
-          this.courses[index].status = 'published'
+    async addCourse(course) {
+      try {
+        // fecth from remote server
+        const response = await fetch('/api/courses', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(course)
+        })
+        if (!response.ok) throw new Error('Failed to add course')
+        const newCourse = await response.json()
+        this.courses.push(newCourse)
+      } catch (error) {
+        console.error('Error adding course:', error)
+      }
+    },
+    
+    async updateCourse(id, updatedCourse) {
+      try {
+        // fecth from remote server
+        const response = await fetch(`/api/courses/${id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(updatedCourse)
+        })
+        if (!response.ok) throw new Error('Failed to update course')
+        const updated = await response.json()
+        
+        const index = this.courses.findIndex(course => course.id === id)
+        if (index !== -1) {
+          this.courses[index] = updated
         }
+      } catch (error) {
+        console.error('Error updating course:', error)
       }
     },
     
-    deleteCourse(id) {
-      const index = this.courses.findIndex(course => course.id === id)
-      if (index !== -1) {
-        this.courses.splice(index, 1)
+    async toggleCourseStatus(id) {
+      try {
+        const course = this.courses.find(c => c.id === id)
+        if (!course) return
+        
+        let newStatus = ''
+        const status = course.status
+        if (status === 'published') {
+          newStatus = 'archived'
+        } else if (status === 'archived') {
+          newStatus = 'published'
+        } else {
+          newStatus = 'published'
+        }
+        
+        // fecth from remote server
+        const response = await fetch(`/api/courses/${id}/status`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ status: newStatus })
+        })
+        if (!response.ok) throw new Error('Failed to toggle course status')
+        
+        const index = this.courses.findIndex(course => course.id === id)
+        if (index !== -1) {
+          this.courses[index].status = newStatus
+        }
+      } catch (error) {
+        console.error('Error toggling course status:', error)
+      }
+    },
+    
+    async deleteCourse(id) {
+      try {
+        // fecth from remote server
+        const response = await fetch(`/api/courses/${id}`, {
+          method: 'DELETE'
+        })
+        if (!response.ok) throw new Error('Failed to delete course')
+        
+        const index = this.courses.findIndex(course => course.id === id)
+        if (index !== -1) {
+          this.courses.splice(index, 1)
+        }
+      } catch (error) {
+        console.error('Error deleting course:', error)
       }
     }
   }

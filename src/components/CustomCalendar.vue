@@ -68,6 +68,12 @@ const selectedDate = ref(new Date(props.modelValue))
 const currentDate = ref(new Date(props.modelValue))
 console.info('-------------selectedDate-------------', selectedDate.value)
 
+// 组件挂载时获取课时数据
+onMounted(async () => {
+  // fecth from remote server
+  await scheduleStore.fetchSchedules()
+})
+
 const weekdays = ['日', '一', '二', '三', '四', '五', '六']
 
 // 格式化月份和年份

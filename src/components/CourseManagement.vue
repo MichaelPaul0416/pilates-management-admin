@@ -64,13 +64,19 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive, h } from 'vue'
+import { ref, computed, reactive, h, onMounted } from 'vue'
 import { useCourseStore } from '../stores/course'
 import { NCard, NButton, NTabs, NTab, NDataTable, NModal, NForm, NFormItem, 
          NInput, NSelect, NSpace, NTag } from 'naive-ui'
 
 // 状态管理
 const courseStore = useCourseStore()
+
+// 组件挂载时获取课程数据
+onMounted(async () => {
+  // fecth from remote server
+  await courseStore.fetchCourses()
+})
 
 // 表格配置
 const columns = [

@@ -188,6 +188,14 @@ import CustomCalendar from './CustomCalendar.vue'
 const courseStore = useCourseStore()
 const scheduleStore = useScheduleStore()
 
+// 组件挂载时获取课程和课时数据
+onMounted(async () => {
+  // fecth from remote server
+  await courseStore.fetchCourses()
+  // fecth from remote server
+  await scheduleStore.fetchSchedules()
+})
+
 // 日期相关
 const selectedDate = ref(Date.now())
 
